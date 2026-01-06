@@ -4,14 +4,14 @@ Cross-platform build script for TTS Converter.
 
 Usage:
     python build.py                 # Build for current platform
-    python build.py --target windows  # Cross-compile for Windows (requires Docker)
-    python build.py --target macos    # Cross-compile for macOS (requires Docker or CI)
+    python build.py --target linux    # Build Linux executable
+    python build.py --target windows  # Build Windows exe (on Windows only)
+    python build.py --target macos    # Build macOS app (on macOS only)
     python build.py --icon            # Only create the icon
     python build.py --clean           # Clean build directories
 
-Cross-compilation from Linux:
-    Windows: Uses Docker with Wine (./build_docker.sh windows)
-    macOS:   Requires GitHub Actions or macOS host (no Docker solution)
+Cross-compilation:
+    Windows/macOS builds from Linux require GitHub Actions: gh workflow run build.yml
 """
 
 import subprocess
@@ -131,52 +131,6 @@ def build_windows_native():
     print("=" * 50)
 
 
-def build_windows_docker():
-    """Build Windows executable using Docker (from Linux)."""
-    print("=" * 50)
-    print("Building TTS Converter for Windows (via Docker)")
-    print("=" * 50)
-
-    # Check if Docker is available
-    try:
-        subprocess.run(["docker", "--version"], check=True, capture_output=True)
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        print("Error: Docker is not installed or not running.")
-        print("Please install Docker and try again.")
-        sys.exit(1)
-
-    print("\nBuilding Docker image...")
-    subprocess.run(
-        ["docker", "build", "-f", "Dockerfile.windows", "-t", "tts-builder-windows", "."],
-        check=True
-    )
-
-    print("\nExtracting build output...")
-    os.makedirs("dist", exist_ok=True)
-
-    # Create container and copy output
-    result = subprocess.run(
-        ["docker", "create", "tts-builder-windows"],
-        capture_output=True,
-        text=True,
-        check=True
-    )
-    container_id = result.stdout.strip()
-
-    try:
-        subprocess.run(
-            ["docker", "cp", f"{container_id}:/app/dist/TTS Converter.exe", "dist/"],
-            check=True
-        )
-    finally:
-        subprocess.run(["docker", "rm", container_id], check=True)
-
-    print("\n" + "=" * 50)
-    print("Windows build complete!")
-    print("Output: dist/TTS Converter.exe")
-    print("=" * 50)
-
-
 def build_mac_native():
     """Build macOS app using py2app (on macOS)."""
     print("=" * 50)
@@ -234,14 +188,12 @@ def main():
         epilog="""
 Examples:
   python build.py                    # Build for current platform
-  python build.py --target windows   # Cross-compile for Windows (Linux→Windows via Docker)
   python build.py --target linux     # Build for Linux
+  python build.py --target windows   # Build for Windows (requires Windows host)
   python build.py --target macos     # Build for macOS (requires macOS host)
 
-Cross-compilation notes:
-  - Linux → Windows: Uses Docker with Wine. Requires Docker installed.
-  - Linux → macOS: Not supported locally. Use GitHub Actions instead.
-  - macOS → Windows: Not supported. Use GitHub Actions instead.
+Cross-compilation:
+  Use GitHub Actions for cross-platform builds: gh workflow run build.yml
         """
     )
     parser.add_argument(
@@ -290,8 +242,12 @@ Cross-compilation notes:
         if current_platform == "win32":
             build_windows_native()
         else:
-            # Cross-compile using Docker
-            build_windows_docker()
+            print("Error: Windows builds require a Windows host.")
+            print("")
+            print("Options:")
+            print("  1. Use GitHub Actions: gh workflow run build.yml")
+            print("  2. Build on a Windows machine")
+            sys.exit(1)
 
     elif target == "macos":
         if current_platform == "darwin":

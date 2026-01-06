@@ -44,21 +44,7 @@ python build.py --target windows   # Build Windows exe (on Windows)
 python build.py --target macos     # Build macOS app (on macOS)
 ```
 
-### Cross-compilation from Linux
-
-**Windows (via Docker):**
-```bash
-python build.py --target windows   # Uses Docker with Wine
-# or
-./build_docker.sh windows
-```
-
-**macOS:** Cannot be built from Linux locally. Use GitHub Actions:
-```bash
-gh workflow run build.yml
-```
-
-### GitHub Actions (CI builds for all platforms)
+### Cross-platform builds (GitHub Actions)
 ```bash
 gh workflow run build.yml          # Trigger builds for Windows, macOS, Linux
 ```
@@ -82,8 +68,6 @@ tts-ui/
 │   └── icon.png             # App icon
 ├── launcher.py              # Desktop app entry point (tray icon)
 ├── build.py                 # Cross-platform build script
-├── build_docker.sh          # Docker-based cross-compilation
-├── Dockerfile.windows       # Docker config for Windows builds
 ├── setup_mac.py             # py2app configuration
 ├── tts_converter.spec       # PyInstaller configuration
 ├── .github/workflows/
