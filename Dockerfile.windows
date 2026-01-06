@@ -1,0 +1,31 @@
+# Dockerfile for building Windows executable from Linux
+# Uses Wine to run PyInstaller in a Windows-like environment
+#
+# Usage:
+#   docker build -f Dockerfile.windows -t tts-builder-windows .
+#   docker run --rm -v $(pwd)/dist:/app/dist tts-builder-windows
+
+FROM tobix/pywine:3.12
+
+WORKDIR /app
+
+# Copy application files
+COPY requirements.txt .
+COPY launcher.py .
+COPY tts_converter.spec .
+COPY app/ ./app/
+COPY static/ ./static/
+COPY assets/ ./assets/
+
+# Install dependencies using Wine Python
+RUN wine pip install --no-cache-dir -r requirements.txt && \
+    wine pip install --no-cache-dir pyinstaller
+
+# Create Windows ICO file
+RUN wine python -c "from PIL import Image; img = Image.open('assets/icon.png'); img.save('assets/icon.ico', format='ICO', sizes=[(256,256), (128,128), (64,64), (48,48), (32,32), (16,16)])"
+
+# Build the executable
+RUN wine pyinstaller tts_converter.spec --clean
+
+# The output will be in /app/dist/
+CMD ["echo", "Build complete. Output in /app/dist/"]

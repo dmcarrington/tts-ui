@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech Converter</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Text to Speech Converter</h1>
+        <form id="tts-form">
+            <textarea
+                id="text-input"
+                name="text"
+                placeholder="Enter text to convert to speech..."
+                rows="8"
+                maxlength="10000"
+                required
+            ></textarea>
+            <div class="char-count">
+                <span id="char-count">0</span> / 10000 characters
+            </div>
+            <div class="form-group">
+                <label for="voice-select">Voice</label>
+                <select id="voice-select" name="voice">
+                    <option value="">Loading voices...</option>
+                </select>
+            </div>
+            <label class="checkbox-label">
+                <input type="checkbox" id="subtitles-checkbox" name="subtitles">
+                <span>Include subtitles (SRT file)</span>
+            </label>
+            <button type="submit" id="convert-btn">
+                <span class="btn-text">Convert to MP3</span>
+                <span class="btn-loading" style="display: none;">Converting...</span>
+            </button>
+        </form>
+        <div id="error-message" class="error" style="display: none;"></div>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
