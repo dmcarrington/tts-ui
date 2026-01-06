@@ -10,6 +10,12 @@ import os
 import threading
 import webbrowser
 import time
+import asyncio
+
+# Fix Windows asyncio compatibility with uvicorn
+# Must be done before any other asyncio imports
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 # Handle frozen app paths (PyInstaller/py2app)
 if getattr(sys, 'frozen', False):
@@ -25,9 +31,15 @@ else:
 # Add the base directory to path for imports
 sys.path.insert(0, BASE_DIR)
 
+# Change to correct directory BEFORE importing app.main (static files use relative paths)
+os.chdir(BASE_DIR)
+
 import uvicorn
 from pystray import Icon, Menu, MenuItem
 from PIL import Image
+
+# Import the FastAPI app directly (required for PyInstaller - string imports don't work)
+from app.main import app as fastapi_app
 
 PORT = 8000
 URL = f"http://localhost:{PORT}"
@@ -41,17 +53,28 @@ class TTSApp:
 
     def start_server(self):
         """Start the uvicorn server in a background thread."""
-        # Change to the correct directory for static files
-        os.chdir(BASE_DIR)
+        # Create a new event loop for this thread (required on Windows)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
-        config = uvicorn.Config(
-            "app.main:app",
-            host="127.0.0.1",
-            port=PORT,
-            log_level="warning"
-        )
-        self.server = uvicorn.Server(config)
-        self.server.run()
+        try:
+            config = uvicorn.Config(
+                fastapi_app,  # Use imported app object directly (string imports fail in PyInstaller)
+                host="127.0.0.1",
+                port=PORT,
+                log_level="warning"
+            )
+            self.server = uvicorn.Server(config)
+            self.server.run()
+        except Exception as e:
+            # Log errors to a file since there's no console on Windows
+            log_path = os.path.join(os.path.expanduser("~"), "tts_converter_error.log")
+            with open(log_path, "a") as f:
+                import traceback
+                f.write(f"\n{'='*50}\n")
+                f.write(f"Server error: {e}\n")
+                f.write(traceback.format_exc())
+            raise
 
     def open_browser(self):
         """Open the default browser after a short delay."""

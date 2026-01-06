@@ -22,6 +22,7 @@ a = Analysis(
         'uvicorn.logging',
         'uvicorn.loops',
         'uvicorn.loops.auto',
+        'uvicorn.loops.asyncio',
         'uvicorn.protocols',
         'uvicorn.protocols.http',
         'uvicorn.protocols.http.auto',
@@ -40,6 +41,24 @@ a = Analysis(
         'PIL._tkinter_finder',
         'multidict._multidict',
         'yarl._quoting_c',
+        # Windows asyncio support
+        'asyncio',
+        'asyncio.windows_events',
+        'asyncio.windows_utils',
+        # HTTP/async dependencies
+        'h11',
+        'httptools',
+        'websockets',
+        'aiohttp',
+        # FastAPI/Starlette
+        'fastapi',
+        'starlette',
+        'starlette.responses',
+        'starlette.staticfiles',
+        'starlette.routing',
+        'anyio',
+        'anyio._backends',
+        'anyio._backends._asyncio',
     ],
     hookspath=[],
     hooksconfig={},
@@ -67,7 +86,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,  # No console window
+    console=True,  # No console window
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
